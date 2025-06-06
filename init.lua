@@ -1,4 +1,4 @@
---[[
+--[[init
 
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
@@ -193,10 +193,29 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+--  See `:help wincmd` for a list of all window commands
+vim.keymap.set('n', '<C-h>', '<cmd> TmuxNavigateLeft<CR>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', '<cmd> TmuxNavigateRight<CR>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', '<cmd> TmuxNavigateDown<CR>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', '<cmd> TmuxNavigateUp<CR>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set('n', '<leader>sv', '<C-w>v', { desc = 'Split window vertically' })
+vim.keymap.set('n', '<leader>sh', '<C-w>s', { desc = 'Split window horizontally' })
+vim.keymap.set('n', '<leader>se', '<C-w>=', { desc = 'Make split equal sizes' })
+vim.keymap.set('n', '<leader>sx', '<cmd>close<CR>', { desc = 'Close current window' })
+
+-- Quickfix list movement
+vim.keymap.set('n', '<C-i>', '<cmd>cprev<CR>', { desc = 'Previous Quickfix Item' })
+vim.keymap.set('n', '<C-p>', '<cmd>cnext<CR>', { desc = 'Next Quickfix Item' })
+vim.keymap.set('n', '<C-o>', '<cmd>copen<CR>', { desc = 'Open Quickfix List' })
+vim.keymap.set('n', '<C-c>', '<cmd>cclose<CR>', { desc = 'Close Quickfix List' })
+
 vim.keymap.set('n', '<A-j>', ':m .+1<CR>==') -- move line up(n)
 vim.keymap.set('n', '<A-k>', ':m .-2<CR>==') -- move line down(n)
 vim.keymap.set('v', '<A-j>', ":m '>+1<CR>gv=gv") -- move line up(v)
 vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv") -- move line down(v)
+
+vim.keymap.set('n', '<leader>x', '<cmd>source %<CR>', { desc = 'Execute the current file' }) -- move line down(v)
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -412,7 +431,7 @@ require('lazy').setup {
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
-      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
+      vim.keymap.set('n', '<leader>sH', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
@@ -465,6 +484,10 @@ require('lazy').setup {
     },
   },
   {
+    'christoomey/vim-tmux-navigator',
+    lazy = false,
+  },
+  {
     'folke/trouble.nvim',
     opts = {}, -- for default options, refer to the configuration section for custom setup.
     cmd = 'Trouble',
@@ -508,7 +531,9 @@ require('lazy').setup {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'williamboman/mason.nvim', opts = {} },
+      { 'williamboman/mason.nvim', opts = {
+        'clangd',
+      } },
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -519,7 +544,10 @@ require('lazy').setup {
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
     },
+
     config = function()
+      require 'kickstart.plugins.configs.lspconfig'
+      require 'custom.configs.lspconfig'
       -- Brief aside: **What is LSP?**
       --
       -- LSP is an initialism you've probably heard, but might not understand what it is.
@@ -649,6 +677,7 @@ require('lazy').setup {
       --   end
       --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
       -- end
+      vim.diagnostic.config { virtual_text = true }
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -866,12 +895,12 @@ require('lazy').setup {
           --
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
-          ['<C-l>'] = cmp.mapping(function()
+          ['<A-l>'] = cmp.mapping(function()
             if luasnip.expand_or_locally_jumpable() then
               luasnip.expand_or_jump()
             end
           end, { 'i', 's' }),
-          ['<C-h>'] = cmp.mapping(function()
+          ['<A-h>'] = cmp.mapping(function()
             if luasnip.locally_jumpable(-1) then
               luasnip.jump(-1)
             end
@@ -1018,8 +1047,8 @@ require('lazy').setup {
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.debug',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns',
